@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +36,9 @@
   <h1>관리자 페이지</h1>
   <div class="count">오늘 탑승자 수: <span id="passenger-count">0명</span></div>
   <div class="log" id="log"></div>
-  <button onclick="downloadCSV()">엑셀 다운로드</button>  <script>
+  <button onclick="downloadCSV()">엑셀 다운로드</button>
+
+  <script>
     let passengerCount = 0;
     let lastUpdatedDate = new Date().toLocaleDateString();
     let passengerLogs = [];
@@ -96,10 +99,16 @@
       document.body.removeChild(link);
     }
 
-    // 테스트용 로그 (배포 시 제거)
-    logPassenger("2025-04-24 08:15 - 통근 탑승");
-    logPassenger("2025-04-24 08:20 - 통근 탑승");
+    function loadLogs() {
+      const today = new Date().toLocaleDateString();
+      const storedLogs = JSON.parse(localStorage.getItem(`passengerLogs_${today}`)) || [];
+      storedLogs.forEach(log => {
+        logPassenger(log);
+      });
+    }
 
+    loadLogs();
     setInterval(resetDailyCountIfNeeded, 60000);
-  </script></body>
+  </script>
+</body>
 </html>
