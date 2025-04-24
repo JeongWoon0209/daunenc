@@ -3,43 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>통근 탑승</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
-      authDomain: "bus4737-f30ee.firebaseapp.com",
-      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
-      projectId: "bus4737-f30ee",
-      storageBucket: "bus4737-f30ee.firebasestorage.app",
-      messagingSenderId: "747409641968",
-      appId: "1:747409641968:web:eb029981b694cb8beacd35"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
-    // Function to handle button clicks and store data in Firebase
-    function handleButtonClick(type) {
-      const timestamp = new Date().toISOString();
-      const refPath = type === 'commute' ? 'commute' : 'departure'; // Handle commute vs departure
-      const refPathWithDate = ref(database, `${refPath}/${timestamp}`);
-      
-      push(refPathWithDate, { timestamp, type, status: "Checked In" })
-        .then(() => {
-          alert(`탑승 ${type === 'commute' ? '출근' : '퇴근'}이 기록되었습니다.`);
-        })
-        .catch(error => {
-          alert('오류가 발생했습니다. 다시 시도해주세요.');
-        });
+  <title>통근 탑승 체크</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
     }
-  </script>
+    h1 {
+      margin-bottom: 40px;
+    }
+    .buttons {
+      display: flex;
+      gap: 20px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: white;
+    }
+    .admin-link {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: #888;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>통근 탑승 체크</h1>
-  <button onclick="handleButtonClick('commute')">통근 탑승</button>
-  <button onclick="handleButtonClick('departure')">퇴근 탑승</button>
+  <h1>탑승 체크</h1>
+  <div class="buttons">
+    <button id="commute-button" onclick="checkIn('통근 탑승')">통근 탑승</button>
+    <button id="leave-button" onclick="checkIn('퇴근 탑승')">퇴근 탑승</button>
+  </div>
+  
+  <!-- 관리자 페이지로 가는 링크 -->
+  <a href="#" onclick="promptPassword()" class="admin-link">관리자 페이지</a>
+
+  <script>
+    // 비밀번호 확인 함수
+    function promptPassword() {
+      const password = prompt("비밀번호를 입력하세요:");
+      if (password === "4737") {
+        window.location.href = "admin.html"; // 비밀번호가 맞으면 관리자 페이지로 이동
+      } else {
+        alert("잘못된 비밀번호입니다.");
+      }
+    }
+
+    // 중복 체크를 위한 함수
+    function checkIn(type) {
+      const now = new Date();
+      const timestamp = now.toLocaleString();
+      const today = now.toLocaleDateString();
+      const record = `${timestamp} - ${type}`;
+      const storageKey = `passengerLogs_${today}`;
+      const logs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      // 이미 체크된 기록이 있으면 버튼을 비활성화
+      if (logs.includes(record)) {
+        alert('이미 탑승 체크를 하셨습니다!');
+        return;
+      }
+
+      logs.push(record);
+      localStorage.setItem(storageKey, JSON.stringify(logs));
+
+      // 탑승 버튼 비활성화
+      disableButtons();
+
+      alert(`${type} 체크 완료!`);
+    }
+
+    // 버튼을 비활성화하는 함수
+    function disableButtons() {
+      document.getElementById('commute-button').disabled = true;
+      document.getElementById('leave-button').disabled = true;
+    }
+  </script>
 </body>
 </html>
