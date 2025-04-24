@@ -1,7 +1,8 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>기사 전용 탑승기록</title>
   <style>
     body {
@@ -86,7 +87,9 @@
       <br/>
       <button id="submitBtn">확인</button>
     </div>
-  </div>  <div id="adminContent" style="display:none">
+  </div>
+
+  <div id="adminContent" style="display:none">
     <h1>통근버스 탑승 기록</h1>
     <div class="time" id="dateTime"></div>
     <div class="count" id="totalCount"></div>
@@ -103,7 +106,9 @@
         <!-- 시트 데이터 삽입 -->
       </tbody>
     </table>
-  </div>  <script>
+  </div>
+
+  <script>
     const passwordModal = document.getElementById("passwordModal");
     const adminContent = document.getElementById("adminContent");
     const submitBtn = document.getElementById("submitBtn");
@@ -157,5 +162,6 @@
           totalCount.textContent = `오늘 총 탑승자 수: ${count}명`;
         });
     }
-  </script></body>
+  </script>
+</body>
 </html>
