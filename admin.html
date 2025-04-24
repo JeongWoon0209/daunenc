@@ -1,167 +1,105 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html><html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기사 전용 탑승기록</title>
+  <title>관리자 페이지</title>
   <style>
     body {
       font-family: sans-serif;
-      margin: 0;
       padding: 20px;
-      background: #f5f5f5;
-    }
-    h1 {
-      text-align: center;
-    }
-    .time {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 18px;
-      color: #555;
+      background-color: #f7f7f7;
     }
     .count {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 20px;
-      color: #000;
+      font-size: 24px;
       font-weight: bold;
+      margin-bottom: 20px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    }
-    th, td {
+    .log {
+      white-space: pre-line;
+      font-size: 16px;
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
+      max-height: 400px;
+      overflow-y: auto;
     }
-    th {
-      background-color: #eee;
-    }
-    #passwordModal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    #passwordBox {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    #passwordInput {
-      font-size: 16px;
-      padding: 10px;
-      width: 150px;
-      margin-top: 10px;
-    }
-    #submitBtn {
+    button {
+      margin-top: 20px;
       padding: 10px 20px;
-      margin-top: 10px;
       font-size: 16px;
-      background-color: #333;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="passwordModal">
-    <div id="passwordBox">
-      <div class="count" id="previewCount">오늘 탑승자 수: - 명</div>
-      <h2>비밀번호를 입력하세요</h2>
-      <input type="password" id="passwordInput" placeholder="비밀번호 입력" />
-      <br/>
-      <button id="submitBtn">확인</button>
-    </div>
-  </div>
+  <h1>관리자 페이지</h1>
+  <div class="count">오늘 탑승자 수: <span id="passenger-count">0명</span></div>
+  <div class="log" id="log"></div>
+  <button onclick="downloadCSV()">엑셀 다운로드</button>  <script>
+    let passengerCount = 0;
+    let lastUpdatedDate = new Date().toLocaleDateString();
+    let passengerLogs = [];
 
-  <div id="adminContent" style="display:none">
-    <h1>통근버스 탑승 기록</h1>
-    <div class="time" id="dateTime"></div>
-    <div class="count" id="totalCount"></div>
-    <table>
-      <thead>
-        <tr>
-          <th>번호</th>
-          <th>탑승유형</th>
-          <th>날짜</th>
-          <th>시간</th>
-        </tr>
-      </thead>
-      <tbody id="logTable">
-        <!-- 시트 데이터 삽입 -->
-      </tbody>
-    </table>
-  </div>
-
-  <script>
-    const passwordModal = document.getElementById("passwordModal");
-    const adminContent = document.getElementById("adminContent");
-    const submitBtn = document.getElementById("submitBtn");
-    const passwordInput = document.getElementById("passwordInput");
-    const previewCount = document.getElementById("previewCount");
-    const totalCount = document.getElementById("totalCount");
-
-    const todayStr = new Date().toISOString().slice(0, 10);
-
-    // 실시간으로 탑승자 수 미리 보기
-    fetch("https://opensheet.elk.sh/YOUR_SHEET_ID/Sheet1")
-      .then(res => res.json())
-      .then(data => {
-        const count = data.filter(row => row["날짜"] === todayStr).length;
-        previewCount.textContent = `오늘 탑승자 수: ${count}명`;
-      });
-
-    submitBtn.addEventListener("click", () => {
-      if (passwordInput.value === "4737") {
-        passwordModal.style.display = "none";
-        adminContent.style.display = "block";
-        loadData();
-        setInterval(loadData, 10000); // 10초마다 자동 갱신
-      } else {
-        alert("비밀번호가 틀렸습니다.");
+    function resetDailyCountIfNeeded() {
+      const now = new Date();
+      const today = now.toLocaleDateString();
+      const hour = now.getHours();
+      if (lastUpdatedDate !== today || hour === 12) {
+        passengerCount = 0;
+        lastUpdatedDate = today;
+        passengerLogs = [];
+        updatePassengerDisplay();
+        clearLog();
       }
-    });
-
-    const now = new Date();
-    document.getElementById('dateTime').textContent = now.toLocaleString();
-
-    function loadData() {
-      const sheetURL = "https://opensheet.elk.sh/YOUR_SHEET_ID/Sheet1";
-      fetch(sheetURL)
-        .then(res => res.json())
-        .then(data => {
-          const tbody = document.getElementById('logTable');
-          tbody.innerHTML = "";
-          let count = 0;
-          data.forEach(row => {
-            if (row["날짜"] === todayStr) count++;
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${row["번호"]}</td>
-              <td>${row["탑승유형"]}</td>
-              <td>${row["날짜"]}</td>
-              <td>${row["시간"]}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-          totalCount.textContent = `오늘 총 탑승자 수: ${count}명`;
-        });
     }
-  </script>
-</body>
+
+    function updatePassengerDisplay() {
+      const counter = document.getElementById('passenger-count');
+      if (counter) {
+        counter.textContent = `${passengerCount}명`;
+      }
+    }
+
+    function clearLog() {
+      const log = document.getElementById('log');
+      if (log) {
+        log.textContent = '';
+      }
+    }
+
+    function incrementPassengerCount() {
+      resetDailyCountIfNeeded();
+      passengerCount++;
+      updatePassengerDisplay();
+    }
+
+    function logPassenger(timeInfo) {
+      const log = document.getElementById('log');
+      if (log) {
+        log.textContent += `\n${timeInfo}`;
+      }
+      passengerLogs.push(timeInfo);
+      incrementPassengerCount();
+    }
+
+    function downloadCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,번호,탑승시간\n";
+      passengerLogs.forEach((log, index) => {
+        csvContent += `${index + 1},${log}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `탑승자명단_${new Date().toLocaleDateString()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // 테스트용 로그 (배포 시 제거)
+    logPassenger("2025-04-24 08:15 - 통근 탑승");
+    logPassenger("2025-04-24 08:20 - 통근 탑승");
+
+    setInterval(resetDailyCountIfNeeded, 60000);
+  </script></body>
 </html>
