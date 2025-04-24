@@ -4,111 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>관리자 페이지</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      background-color: #f7f7f7;
-    }
-    .count {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    .log {
-      white-space: pre-line;
-      font-size: 16px;
-      background-color: white;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
+      authDomain: "bus4737-f30ee.firebaseapp.com",
+      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
+      projectId: "bus4737-f30ee",
+      storageBucket: "bus4737-f30ee.firebasestorage.app",
+      messagingSenderId: "747409641968",
+      appId: "1:747409641968:web:eb029981b694cb8beacd35"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Fetch commute and departure data
+    const commuteRef = ref(database, 'commute');
+    const departureRef = ref(database, 'departure');
+
+    // Real-time listener for commute and departure
+    onValue(commuteRef, snapshot => {
+      const data = snapshot.val();
+      const records = data ? Object.values(data) : [];
+      document.getElementById("commuteCount").textContent = `출근 탑승자: ${records.length}`;
+    });
+
+    onValue(departureRef, snapshot => {
+      const data = snapshot.val();
+      const records = data ? Object.values(data) : [];
+      document.getElementById("departureCount").textContent = `퇴근 탑승자: ${records.length}`;
+    });
+  </script>
 </head>
 <body>
   <h1>관리자 페이지</h1>
-  <div class="count">오늘 탑승자 수: <span id="passenger-count">0명</span></div>
-  <div class="log" id="log"></div>
-  <button onclick="downloadCSV()">엑셀 다운로드</button>
-
-  <script>
-    let passengerCount = 0;
-    let lastUpdatedDate = new Date().toLocaleDateString();
-    let passengerLogs = [];
-
-    function resetDailyCountIfNeeded() {
-      const now = new Date();
-      const today = now.toLocaleDateString();
-      const hour = now.getHours();
-      if (lastUpdatedDate !== today || hour === 12) {
-        passengerCount = 0;
-        lastUpdatedDate = today;
-        passengerLogs = [];
-        updatePassengerDisplay();
-        clearLog();
-      }
-    }
-
-    function updatePassengerDisplay() {
-      const counter = document.getElementById('passenger-count');
-      if (counter) {
-        counter.textContent = `${passengerCount}명`;
-      }
-    }
-
-    function clearLog() {
-      const log = document.getElementById('log');
-      if (log) {
-        log.textContent = '';
-      }
-    }
-
-    function incrementPassengerCount() {
-      resetDailyCountIfNeeded();
-      passengerCount++;
-      updatePassengerDisplay();
-    }
-
-    function logPassenger(timeInfo) {
-      const log = document.getElementById('log');
-      if (log) {
-        log.textContent += `\n${timeInfo}`;
-      }
-      passengerLogs.push(timeInfo);
-      incrementPassengerCount();
-    }
-
-    function downloadCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,번호,탑승시간\n";
-      passengerLogs.forEach((log, index) => {
-        csvContent += `${index + 1},${log}\n`;
-      });
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `탑승자명단_${new Date().toLocaleDateString()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function loadLogs() {
-      const today = new Date().toLocaleDateString();
-      const storedLogs = JSON.parse(localStorage.getItem(`passengerLogs_${today}`)) || [];
-      storedLogs.forEach(log => {
-        logPassenger(log);
-      });
-    }
-
-    loadLogs();
-    setInterval(resetDailyCountIfNeeded, 10000);
-  </script>
+  <div id="commuteCount">출근 탑승자: 0</div>
+  <div id="departureCount">퇴근 탑승자: 0</div>
 </body>
 </html>
