@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,59 +34,10 @@
 </head>
 <body>
   <h1>관리자 페이지</h1>
-  <div class="count">오늘 탑승자 수: <span id="passenger-count">0명</span></div>
+  <div class="count">오늘 탑승자 수: <span id="count">0명</span></div>
   <div class="log" id="log"></div>
-  <button onclick="downloadCSV()">엑셀 다운로드</button>  <!-- Firebase SDK 연결 -->  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  <button onclick="downloadCSV()">엑셀 다운로드</button>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
-      authDomain: "bus4737-f30ee.firebaseapp.com",
-      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
-      projectId: "bus4737-f30ee",
-      storageBucket: "bus4737-f30ee.appspot.com",
-      messagingSenderId: "747409641968",
-      appId: "1:747409641968:web:eb029981b694cb8beacd35",
-      measurementId: "G-70P0G6SKD1"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const logEl = document.getElementById("log");
-    const countEl = document.getElementById("passenger-count");
-    let logs = [];
-
-    const todayKey = new Date().toISOString().split("T")[0];
-    const logsRef = ref(db, 'logs/' + todayKey);
-
-    onValue(logsRef, (snapshot) => {
-      logs = [];
-      logEl.textContent = '';
-      let count = 0;
-      snapshot.forEach(child => {
-        const data = child.val();
-        const logText = `${data.timestamp} - ${data.type}`;
-        logs.push(logText);
-        logEl.textContent += logText + "\n";
-        count++;
-      });
-      countEl.textContent = `${count}명`;
-    });
-
-    window.downloadCSV = function () {
-      let csv = "번호,날짜,시간,탑승유형\n";
-      logs.forEach((log, i) => {
-        const [datetime, type] = log.split(" - ");
-        const [date, time] = datetime.split(", ");
-        csv += `${i + 1},${date},${time},${type}\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `탑승자명단_${todayKey}.csv`;
-      link.click();
-    }
-  </script></body>
+  <script type="module" src="script.js"></script>
+</body>
 </html>
