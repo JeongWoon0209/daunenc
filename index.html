@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="ko">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>통근 탑승 체크</title>
+  <title>탑승 체크</title>
   <style>
     body {
       font-family: sans-serif;
@@ -42,56 +43,12 @@
 <body>
   <h1>탑승 체크</h1>
   <div class="buttons">
-    <button id="commute-button" onclick="checkIn('통근')">통근 탑승</button>
-    <button id="leave-button" onclick="checkIn('퇴근')">퇴근 탑승</button>
+    <button onclick="checkIn('통근')">통근 탑승</button>
+    <button onclick="checkIn('퇴근')">퇴근 탑승</button>
   </div>
-  <a href="admin.html" class="admin-link">관리자 페이지</a>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+  <a href="admin.html" class="admin-link">관리자 페이지</a>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
-      authDomain: "bus4737-f30ee.firebaseapp.com",
-      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
-      projectId: "bus4737-f30ee",
-      storageBucket: "bus4737-f30ee.appspot.com",
-      messagingSenderId: "747409641968",
-      appId: "1:747409641968:web:eb029981b694cb8beacd35"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    function getTimeKey() {
-      const now = new Date();
-      const hours = now.getHours();
-      return `${now.toLocaleDateString()}_${hours < 12 ? 'AM' : 'PM'}`;
-    }
-
-    function checkIn(type) {
-      const now = new Date();
-      const time = now.toLocaleTimeString();
-      const date = now.toLocaleDateString();
-      const key = getTimeKey();
-
-      const localKey = `checked_${key}`;
-      if (localStorage.getItem(localKey)) {
-        alert('이미 체크하셨습니다!');
-        return;
-      }
-
-      push(ref(db, `logs/${date}`), {
-        type,
-        time,
-        timestamp: now.getTime()
-      });
-
-      localStorage.setItem(localKey, '1');
-      alert(`${type} 체크 완료!`);
-      document.getElementById('commute-button').disabled = true;
-      document.getElementById('leave-button').disabled = true;
-    }
-
-    window.checkIn = checkIn;
-  </script></body>
+  <!-- Firebase 연동 -->
+  <script type="module" src="script.js"></script>
+</body>
 </html>
