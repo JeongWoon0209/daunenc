@@ -3,76 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>통근버스 탑승 확인</title>
+  <title>통근 탑승 체크</title>
   <style>
     body {
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
-      font-family: sans-serif;
-      background-color: #f1f1f1;
+      background-color: #f0f0f0;
     }
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 40px;
+    }
+    .buttons {
+      display: flex;
+      gap: 20px;
     }
     button {
-      width: 200px;
-      padding: 15px;
+      padding: 15px 30px;
       font-size: 18px;
-      margin: 10px;
       border: none;
       border-radius: 8px;
-      background-color: #333;
-      color: white;
       cursor: pointer;
+      background-color: #4caf50;
+      color: white;
     }
-    .message {
-      margin-top: 20px;
-      font-size: 16px;
-      font-weight: bold;
-      color: green;
+    .admin-link {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <h1>탑승 확인</h1>
-  <button onclick="submitType('통근 탑승')">통근 탑승</button>
-  <button onclick="submitType('퇴근 탑승')">퇴근 탑승</button>
-  <div class="message" id="message"></div>
-  
-  <!-- 관리자 페이지로 가는 버튼 추가 -->
-  <button onclick="window.location.href='admin.html'">관리자 페이지로 가기</button>
+  <h1>탑승 체크</h1>
+  <div class="buttons">
+    <button onclick="checkIn('통근 탑승')">통근 탑승</button>
+    <button onclick="checkIn('퇴근 탑승')">퇴근 탑승</button>
+  </div>
+  <a href="admin.html" class="admin-link">관리자 페이지</a>
 
   <script>
-    function submitType(type) {
+    function checkIn(type) {
       const now = new Date();
-      const date = now.toISOString().slice(0, 10);
-      const time = now.toTimeString().slice(0, 5);
+      const timestamp = now.toLocaleString();
+      const today = now.toLocaleDateString();
+      const record = `${timestamp} - ${type}`;
 
-      fetch('https://sheetdb.io/api/v1/YOUR_SHEETDB_API', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          data: [{
-            "번호": '',
-            "탑승유형": type,
-            "날짜": date,
-            "시간": time
-          }]
-        })
-      })
-      .then(res => res.json())
-      .then(() => {
-        document.getElementById('message').textContent = type + '이(가) 체크되었습니다.';
-      })
-      .catch(() => {
-        document.getElementById('message').textContent = '탑승 체크 실패. 다시 시도해주세요.';
-      });
+      const storageKey = `passengerLogs_${today}`;
+      const logs = JSON.parse(localStorage.getItem(storageKey)) || [];
+      logs.push(record);
+      localStorage.setItem(storageKey, JSON.stringify(logs));
+
+      alert(`${type} 체크 완료!`);
     }
   </script>
 </body>
