@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html><html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,60 +36,62 @@
       right: 20px;
       font-size: 14px;
       color: #888;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>탑승 체크</h1>
   <div class="buttons">
-    <button id="commute-button" onclick="checkIn('통근 탑승')">통근 탑승</button>
-    <button id="leave-button" onclick="checkIn('퇴근 탑승')">퇴근 탑승</button>
+    <button id="commute-button" onclick="checkIn('통근')">통근 탑승</button>
+    <button id="leave-button" onclick="checkIn('퇴근')">퇴근 탑승</button>
   </div>
-  
-  <!-- 관리자 페이지로 가는 링크 -->
-  <a href="#" onclick="promptPassword()" class="admin-link">관리자 페이지</a>
+  <a href="admin.html" class="admin-link">관리자 페이지</a>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-  <script>
-    // 비밀번호 확인 함수
-    function promptPassword() {
-      const password = prompt("비밀번호를 입력하세요:");
-      if (password === "4737") {
-        window.location.href = "admin.html"; // 비밀번호가 맞으면 관리자 페이지로 이동
-      } else {
-        alert("잘못된 비밀번호입니다.");
-      }
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
+      authDomain: "bus4737-f30ee.firebaseapp.com",
+      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
+      projectId: "bus4737-f30ee",
+      storageBucket: "bus4737-f30ee.appspot.com",
+      messagingSenderId: "747409641968",
+      appId: "1:747409641968:web:eb029981b694cb8beacd35"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    function getTimeKey() {
+      const now = new Date();
+      const hours = now.getHours();
+      return `${now.toLocaleDateString()}_${hours < 12 ? 'AM' : 'PM'}`;
     }
 
-    // 중복 체크를 위한 함수
     function checkIn(type) {
       const now = new Date();
-      const timestamp = now.toLocaleString();
-      const today = now.toLocaleDateString();
-      const record = `${timestamp} - ${type}`;
-      const storageKey = `passengerLogs_${today}`;
-      const logs = JSON.parse(localStorage.getItem(storageKey)) || [];
+      const time = now.toLocaleTimeString();
+      const date = now.toLocaleDateString();
+      const key = getTimeKey();
 
-      // 이미 체크된 기록이 있으면 버튼을 비활성화
-      if (logs.includes(record)) {
-        alert('이미 탑승 체크를 하셨습니다!');
+      const localKey = `checked_${key}`;
+      if (localStorage.getItem(localKey)) {
+        alert('이미 체크하셨습니다!');
         return;
       }
 
-      logs.push(record);
-      localStorage.setItem(storageKey, JSON.stringify(logs));
+      push(ref(db, `logs/${date}`), {
+        type,
+        time,
+        timestamp: now.getTime()
+      });
 
-      // 탑승 버튼 비활성화
-      disableButtons();
-
+      localStorage.setItem(localKey, '1');
       alert(`${type} 체크 완료!`);
-    }
-
-    // 버튼을 비활성화하는 함수
-    function disableButtons() {
       document.getElementById('commute-button').disabled = true;
       document.getElementById('leave-button').disabled = true;
     }
-  </script>
-</body>
+
+    window.checkIn = checkIn;
+  </script></body>
 </html>
