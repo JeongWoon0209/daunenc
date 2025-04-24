@@ -1,20 +1,31 @@
-document.getElementById('attendanceForm').addEventListener('submit', function(event) {
-  event.preventDefault();
-  const name = document.getElementById('name').value;
-  const type = document.getElementById('type').value;
+// Firebase 연동 코드 (이미 index.html과 admin.html에서 사용됨)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-  // Google Apps Script로 데이터 전송하기 (예시 URL 사용)
-  fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
-    method: 'POST',
-    body: JSON.stringify({ name, type, timestamp: new Date().toLocaleString() }),
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-  .then(response => response.json())
-  .then(data => alert('출석 체크 완료!'))
-  .catch(error => alert('출석 체크 실패!'));
+const firebaseConfig = {
+  apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
+  authDomain: "bus4737-f30ee.firebaseapp.com",
+  databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
+  projectId: "bus4737-f30ee",
+  storageBucket: "bus4737-f30ee.firebasestorage.app",
+  messagingSenderId: "747409641968",
+  appId: "1:747409641968:web:eb029981b694cb8beacd35"
+};
 
-  // 폼 리셋
-  document.getElementById('attendanceForm').reset();
-});
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// Function for handling the data
+function handleButtonClick(type) {
+  const timestamp = new Date().toISOString();
+  const refPath = type === 'commute' ? 'commute' : 'departure';
+  const refPathWithDate = ref(database, `${refPath}/${timestamp}`);
+  
+  push(refPathWithDate, { timestamp, type, status: "Checked In" })
+    .then(() => {
+      console.log(`${type === 'commute' ? '출근' : '퇴근'} 체크인 완료`);
+    })
+    .catch(error => {
+      console.error('오류 발생:', error);
+    });
+}
