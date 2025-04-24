@@ -4,9 +4,88 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>관리자 페이지</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+    .count {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    .log {
+      white-space: pre-line;
+      font-size: 16px;
+      background-color: white;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #password-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7f7f7;
+    }
+    #password-form {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    #password-form input {
+      padding: 10px;
+      margin-bottom: 10px;
+      width: 200px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="password-container">
+    <div id="password-form">
+      <h2>비밀번호 입력</h2>
+      <input type="password" id="password" placeholder="비밀번호를 입력하세요">
+      <button onclick="checkPassword()">확인</button>
+    </div>
+  </div>
+
+  <div id="admin-page" style="display: none;">
+    <h1>관리자 페이지</h1>
+    <div class="count">오늘 탑승자 수: <span id="passenger-count">0명</span></div>
+    <div class="log" id="log"></div>
+    <button onclick="downloadCSV()">엑셀 다운로드</button>
+  </div>
+
   <script type="module">
+    const correctPassword = "4737"; // 비밀번호를 4737로 설정
+
+    function checkPassword() {
+      const password = document.getElementById('password').value;
+      if (password === correctPassword) {
+        // 비밀번호가 맞으면 관리자 페이지 보여주기
+        document.getElementById('password-container').style.display = 'none';
+        document.getElementById('admin-page').style.display = 'block';
+        loadLogs(); // 로그 불러오기
+      } else {
+        alert("잘못된 비밀번호입니다.");
+      }
+    }
+
+    // Firebase 초기화 코드
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
@@ -15,33 +94,89 @@
       projectId: "bus4737-f30ee",
       storageBucket: "bus4737-f30ee.firebasestorage.app",
       messagingSenderId: "747409641968",
-      appId: "1:747409641968:web:eb029981b694cb8beacd35"
+      appId: "1:747409641968:web:eb029981b694cb8beacd35",
+      measurementId: "G-70P0G6SKD1"
     };
 
+    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // Fetch commute and departure data
-    const commuteRef = ref(database, 'commute');
-    const departureRef = ref(database, 'departure');
+    let passengerCount = 0;
+    let lastUpdatedDate = new Date().toLocaleDateString();
+    let passengerLogs = [];
 
-    // Real-time listener for commute and departure
-    onValue(commuteRef, snapshot => {
-      const data = snapshot.val();
-      const records = data ? Object.values(data) : [];
-      document.getElementById("commuteCount").textContent = `출근 탑승자: ${records.length}`;
-    });
+    function resetDailyCountIfNeeded() {
+      const now = new Date();
+      const today = now.toLocaleDateString();
+      const hour = now.getHours();
+      if (lastUpdatedDate !== today || hour === 12) {
+        passengerCount = 0;
+        lastUpdatedDate = today;
+        passengerLogs = [];
+        updatePassengerDisplay();
+        clearLog();
+      }
+    }
 
-    onValue(departureRef, snapshot => {
-      const data = snapshot.val();
-      const records = data ? Object.values(data) : [];
-      document.getElementById("departureCount").textContent = `퇴근 탑승자: ${records.length}`;
-    });
+    function updatePassengerDisplay() {
+      const counter = document.getElementById('passenger-count');
+      if (counter) {
+        counter.textContent = `${passengerCount}명`;
+      }
+    }
+
+    function clearLog() {
+      const log = document.getElementById('log');
+      if (log) {
+        log.textContent = '';
+      }
+    }
+
+    function incrementPassengerCount() {
+      resetDailyCountIfNeeded();
+      passengerCount++;
+      updatePassengerDisplay();
+    }
+
+    function logPassenger(timeInfo) {
+      const log = document.getElementById('log');
+      if (log) {
+        log.textContent += `\n${timeInfo}`;
+      }
+      passengerLogs.push(timeInfo);
+      incrementPassengerCount();
+    }
+
+    function downloadCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,번호,탑승시간\n";
+      passengerLogs.forEach((log, index) => {
+        csvContent += `${index + 1},${log}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `탑승자명단_${new Date().toLocaleDateString()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function loadLogs() {
+      const today = new Date().toLocaleDateString();
+      const logsRef = ref(database, 'logs/' + today);
+      get(logsRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const logs = snapshot.val();
+          for (const timestamp in logs) {
+            const log = logs[timestamp];
+            logPassenger(`${log.timestamp} - ${log.type}`);
+          }
+        }
+      });
+    }
+
+    setInterval(resetDailyCountIfNeeded, 10000);
   </script>
-</head>
-<body>
-  <h1>관리자 페이지</h1>
-  <div id="commuteCount">출근 탑승자: 0</div>
-  <div id="departureCount">퇴근 탑승자: 0</div>
 </body>
 </html>
