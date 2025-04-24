@@ -3,65 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>통근 탑승 체크</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f0f0f0;
-    }
-    h1 {
-      margin-bottom: 40px;
-    }
-    .buttons {
-      display: flex;
-      gap: 20px;
-    }
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: #4caf50;
-      color: white;
-    }
-    .admin-link {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      font-size: 14px;
-      color: #888;
-    }
-  </style>
-</head>
-<body>
-  <h1>탑승 체크</h1>
-  <div class="buttons">
-    <button onclick="checkIn('통근 탑승')">통근 탑승</button>
-    <button onclick="checkIn('퇴근 탑승')">퇴근 탑승</button>
-  </div>
-  <a href="admin.html" class="admin-link">관리자 페이지</a>
+  <title>통근 탑승</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
-  <script>
-    function checkIn(type) {
-      const now = new Date();
-      const timestamp = now.toLocaleString();
-      const today = now.toLocaleDateString();
-      const record = `${timestamp} - ${type}`;
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPvVhk9eOqEQR32wvuPUYV_NecQeXvLkg",
+      authDomain: "bus4737-f30ee.firebaseapp.com",
+      databaseURL: "https://bus4737-f30ee-default-rtdb.firebaseio.com",
+      projectId: "bus4737-f30ee",
+      storageBucket: "bus4737-f30ee.firebasestorage.app",
+      messagingSenderId: "747409641968",
+      appId: "1:747409641968:web:eb029981b694cb8beacd35"
+    };
 
-      const storageKey = `passengerLogs_${today}`;
-      const logs = JSON.parse(localStorage.getItem(storageKey)) || [];
-      logs.push(record);
-      localStorage.setItem(storageKey, JSON.stringify(logs));
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-      alert(`${type} 체크 완료!`);
+    // Function to handle button clicks and store data in Firebase
+    function handleButtonClick(type) {
+      const timestamp = new Date().toISOString();
+      const refPath = type === 'commute' ? 'commute' : 'departure'; // Handle commute vs departure
+      const refPathWithDate = ref(database, `${refPath}/${timestamp}`);
+      
+      push(refPathWithDate, { timestamp, type, status: "Checked In" })
+        .then(() => {
+          alert(`탑승 ${type === 'commute' ? '출근' : '퇴근'}이 기록되었습니다.`);
+        })
+        .catch(error => {
+          alert('오류가 발생했습니다. 다시 시도해주세요.');
+        });
     }
   </script>
+</head>
+<body>
+  <h1>통근 탑승 체크</h1>
+  <button onclick="handleButtonClick('commute')">통근 탑승</button>
+  <button onclick="handleButtonClick('departure')">퇴근 탑승</button>
 </body>
 </html>
