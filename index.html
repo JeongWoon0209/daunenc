@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>통근버스 탑승 체크</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f4f4f4; }
+    .container { text-align: center; padding: 20px; background-color: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+    select, button { padding: 10px; font-size: 16px; margin-top: 10px; }
+    button { background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>통근버스 탑승 체크</h1>
+    <form id="attendanceForm">
+      <label for="name">이름을 선택하세요:</label>
+      <select id="name" required>
+        <!-- 여기에 이름 목록 추가 (최대 24명) -->
+        <option value="홍길동">홍길동</option>
+        <option value="김철수">김철수</option>
+        <option value="이영희">이영희</option>
+        <!-- 여기에 추가될 이름 목록 -->
+      </select>
+
+      <br><br>
+
+      <label for="type">탑승 유형을 선택하세요:</label>
+      <select id="type" required>
+        <option value="통근 탑승">통근 탑승</option>
+        <option value="퇴근 탑승">퇴근 탑승</option>
+      </select>
+
+      <br><br>
+      <button type="submit">출석 체크</button>
+    </form>
+  </div>
+
+  <!-- JavaScript 파일 연결 -->
+  <script src="script.js"></script>  <!-- 이 부분에서 script.js 파일 연결 -->
+
+</body>
+</html>
